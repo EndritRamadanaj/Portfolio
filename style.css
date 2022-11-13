@@ -132,6 +132,10 @@ html {
     align-self: center;
     justify-self: center;
     opacity: 0.5;
+    position: relative;
+    transition: left 2s, top2s;
+    top: 0;
+    left: 0;
 }
 .circle-1 {
     background: url(images/landing/circle-1-img.png)center no-repeat;
@@ -166,7 +170,11 @@ html {
 }
 
 .main-circle img {
-    mix-blend-mode:luminosity ;
+    mix-blend-mode:color-dodge ;
+    position: relative;
+    transition: left 2s, top2s;
+    top: 0;
+    left: 0;
 }
 /*End of Animated Circles*/
 
