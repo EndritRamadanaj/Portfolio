@@ -259,7 +259,7 @@ menuIcon.addEventListener("click", () => {
 //About me Text
 const aboutMeText = document.querySelector(".about-me-text");
 const aboutMeTextContent =
-  "I am a Web Developer & I create websites with the best user experience & I do not talk much, just contact me. :)";
+  "I'm a Software Engineer focused on building user-friendly, innovative applications with .NET, Angular, and C#. Let's connect!";
 
 Array.from(aboutMeTextContent).forEach((char) => {
   const span = document.createElement("span");
