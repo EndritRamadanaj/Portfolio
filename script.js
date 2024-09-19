@@ -429,7 +429,27 @@ form.addEventListener("submit", e => {
   checkLength(message, 10)
   checkEmail(email)
   checkRequiredFields([username,email,subject,message])
-})
+
+  const isValid = document.querySelectorAll('.error').length === 0; // Check if there are no errors
+  if (isValid) {
+    //Send email with EmailJS
+    emailjs.send("service_c5t4mad", "template_gk7cc4n", {
+      name: username.value,
+      email: email.value,
+      subject: subject.value,
+      message: message.value,
+    })
+    .then(function(response) {
+      alert('Message sent successfully!');
+      var frm = document.getElementsByClassName('contact-form')[0];
+      frm.submit(); // Submit the form
+      frm.reset();  // Reset all form data
+      return false; // Prevent page refresh
+    }, function(error) {
+      alert('Failed to send the message, please try again.');
+    });
+  }
+});
 
 //End of Form Validation
 //End of Section 4
