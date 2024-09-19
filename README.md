@@ -17,10 +17,6 @@ You can view the live website here: [Portfolio](https://endritramadanaj.github.i
 - **Responsive Design**: Works across different devices for an optimal experience.
 - **Navigation**: Easy-to-use links for Home, About Me, Projects, and Contact sections.
 
-## 📷 Screenshot
-
-![Portfolio Screenshot](https://endritramadanaj.github.io/Portfolio/)
-
 ## 🚀 Technologies Used
 
 - **Frontend**: HTML5, CSS3, JavaScript
