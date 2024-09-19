@@ -38,6 +38,3 @@ If you'd like to get in touch or learn more about me, feel free to reach out:
 
 - **Email**: [endritramadanaj@hotmail.com](mailto:endritramadanaj@hotmail.com)
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
