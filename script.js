@@ -1,455 +1,235 @@
-//Mouse circle
-const mouseCircle = document.querySelector(".mouse-circle");
-const mouseDot = document.querySelector(".mouse-dot");
+// Three.js Scene Setup
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({
+    canvas: document.getElementById('canvas-bg'),
+    alpha: true,
+    antialias: true
+});
 
-let mouseCircleBool = true;
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const mouseCircleFn = (x,y) => {
-  mouseCircleBool &&
-  (mouseCircle.style.cssText = `top: ${y}px; left: ${x}px; opacity: 1`);
+// Create floating particles
+const particlesGeometry = new THREE.BufferGeometry();
+const particlesCount = 1000;
+const positions = new Float32Array(particlesCount * 3);
 
-  mouseDot.style.cssText = `top: ${y}px; left: ${x}px; opacity: 1`;
-};
-//End of MouseCircle
+for (let i = 0; i < particlesCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 50;
+}
 
-//Animated circles
-const circles = document.querySelectorAll(".circle");
-const mainImg = document.querySelector(".main-circle img");
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-let mX = 0;
-let mY = 0;
-const z = 100;
+const particlesMaterial = new THREE.PointsMaterial({
+    size: 0.05,
+    color: 0x00ffff,
+    transparent: true,
+    opacity: 0.6,
+    blending: THREE.AdditiveBlending
+});
 
-const animateCircles = (e, x, y) => {
-  if (x < mX) {
-    circles.forEach((circle) => {
-      circle.style.left = `${z}px`;
-    });
-    mainImg.style.left = `${z}px`;
-  } else if (x > mX) {
-    circles.forEach((circle) => {
-      circle.style.left = `-${z}px`;
-    });
-    mainImg.style.left = `-${z}px`;
-  }
-  if (y < mY) {
-    circles.forEach((circle) => {
-      circle.style.top = `${z}px`;
-    });
-    mainImg.style.top = `${z}px`;
-  } else if (y > mY) {
-    circles.forEach((circle) => {
-      circle.style.top = `-${z}px`;
-    });
-    mainImg.style.top = `-${z}px`;
-  }
+const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+scene.add(particles);
 
-  mX = e.clientX;
-  mY = e.clientY;
-};
-//End of Animated circles
+// Create rotating torus
+const torusGeometry = new THREE.TorusGeometry(3, 0.5, 16, 100);
+const torusMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff00ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.3
+});
 
-let hoveredElPosition = []
+const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+scene.add(torus);
 
-const stickyElement = (x,y, hoveredEl) => {
-  //Sticky Element
-  if(hoveredEl.classList.contains("sticky")) {
-    hoveredElPosition.length < 1 &&
-      (hoveredElPosition = [hoveredEl.offsetTop, hoveredEl.offsetLeft])
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0x00ffff, 1);
+pointLight.position.set(5, 5, 5);
+scene.add(pointLight);
+
+camera.position.z = 10;
+
+// Animation function
+function animate() {
+    requestAnimationFrame(animate);
+    particles.rotation.y += 0.001;
+    particles.rotation.x += 0.0005;
+    torus.rotation.x += 0.005;
+    torus.rotation.y += 0.005;
+    renderer.render(scene, camera);
+}
+
+animate();
+
+// Handle resize
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Navigation functions
+function showSection(sectionId) {
+    const sections = document.querySelectorAll('section');
+    const navButtons = document.querySelectorAll('.nav-menu button');
     
-
-    hoveredEl.style.cssText = `top: ${y}px; left: ${x}px`;
-
-    if(hoveredEl.offsetTop <= hoveredElPosition[0] - 100 || 
-      hoveredEl.offsetTop >= hoveredElPosition[0] +  100 ||
-      hoveredEl.offsetLeft <= hoveredElPosition[1] - 100 ||
-      hoveredEl.offsetLeft >= hoveredElPosition[1] + 100) 
-    {
-      hoveredEl.style.cssText = "";
-      hoveredElPosition = []
-    }
-    hoveredEl.onmouseleave = () => {
-      hoveredEl.style.cssText = "";
-      hoveredElPosition = []
-    }
-  }
-  //End of Sticky Element
-  
-
-}
-
-//Mouse circle Transform
-const mouseCircleTransform = (hoveredEl) => {
-  if(hoveredEl.classList.contains("pointer-enter")) {
-    hoveredEl.onmousemove = () => {
-      mouseCircleBool = false;
-      mouseCircle.style.cssText = 
-      `width: ${hoveredEl.getBoundingClientRect().width}px;
-      height: ${hoveredEl.getBoundingClientRect().height}px;
-      top: ${hoveredEl.getBoundingClientRect().top}px;
-      left: ${hoveredEl.getBoundingClientRect().left}px;
-      opacity: 1;
-      transform: translate(0, 0);
-      animation: none;
-      border-radius: ${getComputedStyle(hoveredEl).borderBottomLeftRadius};
-      transition: width 0.5s, height 0.5s, top 0.5s, left 0.5s, transform 0.5s, border-radius 0.5s;
-      `;
-    }
-
-    hoveredEl.onmouseleave = () => {
-      mouseCircleBool = true;
-    }
-
-    document.onscroll = () => {
-      if(!mouseCircleBool) {
-        mouseCircle.style.top = `${hoveredEl.getBoundingClientRect().top}px`
-      }
-    }
-  }
-}
-//End of Mouse circle Transform
-
-
-document.body.addEventListener("mousemove", (e) => {
-  let x = e.clientX;
-  let y = e.clientY;
-
-  mouseCircleFn(x, y);
-  animateCircles(e, x, y);
-
-  
-  const hoveredEl = document.elementFromPoint(x, y);
-
-  stickyElement(x, y, hoveredEl)
-
-  mouseCircleTransform(hoveredEl);
-});
-
-
-document.body.addEventListener("mouseleave", () => {
-  mouseCircle.style.opacity = "0";
-  mouseDot.style.opacity = "0";
-});
-
-//Main  Button
-const mainBtns = document.querySelectorAll(".main-btn");
-
-mainBtns.forEach((btn) => {
-  let ripple;
-  btn.addEventListener("mouseenter", (e) => {
-    const left = e.clientX - e.target.getBoundingClientRect().left;
-    const top = e.clientY - e.target.getBoundingClientRect().top;
-
-    ripple = document.createElement("div");
-    ripple.classList.add("ripple");
-    ripple.style.left = `${left}px`;
-    ripple.style.top = `${top}px`;
-    btn.prepend(ripple);
-  });
-
-  btn.addEventListener("mouseleave", () => {
-    btn.removeChild(ripple);
-  });
-});
-//End of Main Button
-
-//Progress Bar
-const sections = document.querySelectorAll("section");
-const progressBar = document.querySelector(".progress-bar");
-const halfCircles = document.querySelectorAll(".half-circle");
-const halfCircleTop = document.querySelector(".half-circle-top");
-const progressBarCircle = document.querySelector(".progress-bar-circle");
-
-let scrolledPortion = 0;
-let scrollBool = false;
-let imageWrapper = false;
-
-const progressBarFn = (imageWrapper) => {
-    imageWrapper = imageWrapper
-  let pageHeight = 0;
-  const pageViewportHeight = window.innerHeight;
-
-  if (!imageWrapper) {
-    pageHeight = document.documentElement.scrollHeight;
-    scrolledPortion = window.pageYOffset;
-  } else {
-    pageHeight = imageWrapper.firstElementChild.scrollHeight;
-    scrolledPortion = imageWrapper.scrollTop;
-  }
-
-
-  const scrolledPortionDegree =
-    (scrolledPortion / (pageHeight - pageViewportHeight)) * 360;
-  halfCircles.forEach((el) => {
-    el.style.transform = `rotate(${scrolledPortionDegree}deg)`;
-
-    if (scrolledPortionDegree >= 180) {
-      halfCircles[0].style.transform = "rotate(180deg)";
-      halfCircleTop.style.opacity = "0";
-    } else {
-      halfCircleTop.style.opacity = "1";
-    }
-  });
-
-scrollBool = scrolledPortion + pageViewportHeight === pageHeight;
-
-
-
-  //Arrow Rotation
-  if (scrollBool) {
-    progressBarCircle.style.transform = "rotate(180deg)";
-  } else {
-    progressBarCircle.style.transform = "rotate(0)";
-  }
-  //End of Arrow Rotation
-};
-
-  //Progress Bar click
-  progressBar.addEventListener= ("click", (e) => {
-    e.preventDefault();
-
-    if (!imageWrapper) {
-      const sectionPositions = Array.from(sections).map((section) => 
-        scrolledPortion + section.getBoundingClientRect().top
-      );
-
-      const position = sectionPositions.find((sectionPosition) => {
-        return sectionPosition > scrolledPortion;
-      });
-      scrollBool ? window.scrollTo(0, 0) : window.scrollTo(0, position);
-    } else {
-      scrollBool
-        ? imageWrapper.scrollTo(0, 0)
-        : imageWrapper.scrollTo(0, imageWrapper.scrollHeight);
-    }
-  });
-
-  //End ofProgress Bar click
-
-progressBarFn();
-//End of Progress Bar
-
-
-
-//Navigation
-const menuIcon = document.querySelector(".menu-icon");
-const navbar = document.querySelector(".navbar");
-
-const scrollFn = () => {
-    menuIcon.classList.add("show-menu-icon");
-  navbar.classList.add("hide-navbar");
-
-  if (window.scrollY === 0) {
-    menuIcon.classList.remove("show-menu-icon");
-    navbar.classList.remove("hide-navbar");
-  }
-
-  progressBarFn();
-}
-
-document.addEventListener("scroll", scrollFn);
-
-menuIcon.addEventListener("click", () => {
-  menuIcon.classList.remove("show-menu-icon");
-  navbar.classList.remove("hide-navbar");
-});
-
-//End of Navigation
-
-//About me Text
-const aboutMeText = document.querySelector(".about-me-text");
-const aboutMeTextContent =
-  "I'm a Software Engineer focused on building user-friendly, innovative applications with .NET, Angular, and C#. Let's connect!";
-
-Array.from(aboutMeTextContent).forEach((char) => {
-  const span = document.createElement("span");
-  span.textContent = char;
-  aboutMeText.appendChild(span);
-
-  span.addEventListener("mouseenter", (e) => {
-    e.target.style.animation = "aboutMeTextAnim 10s infinite";
-  });
-});
-//End of About me TExt
-
-//Projects
-const container = document.querySelector(".container");
-const projects = document.querySelectorAll(".project");
-const projectHideBtn = document.querySelector(".project-hide-btn");
-
-projects.forEach((project) => {
-  project.addEventListener("mouseenter", () => {
-    project.firstElementChild.style.top = `-${
-      project.firstElementChild.offsetHeight - project.offsetHeight
-    }px`;
-  });
-  project.addEventListener("mouseleave", () => {
-    project.firstElementChild.style.top = "2rem";
-  });
-
-  //Big Project Image
-  project.addEventListener("click", () => {
-    const imageWrapper = document.createElement("div");
-    imageWrapper.className = "project-img-wrapper";
-    container.appendChild(imageWrapper);
-
-    const bigImg = document.createElement("img");
-    bigImg.className = "project-img";
-    const imgPath = project.firstElementChild.getAttribute("src").split(".")[0];
-    bigImg.setAttribute("src", `${imgPath}-big.png`);
-    imageWrapper.appendChild(bigImg);
-    document.body.style.overflowY = "hidden";
-
-    mouseCircle.style.opacity = 0;
-
-    progressBarFn(imageWrapper);
-
-    document.removeEventListener("scroll",scrollFn);
-
-    imageWrapper.onscroll = () => {
-      progressBarFn(imageWrapper);
-    };
-
-    projectHideBtn.classList.add("change");
-
-    projectHideBtn.onclick = () => {
-      projectHideBtn.classList.remove("change");
-      imageWrapper.remove();
-      document.body.style.overflowY = "scroll";
-
-      document.addEventListener("scroll", scrollFn)
-
-      progressBarFn();
-    };
-  });
-  //End of Big Project Image
-});
-
-//End of Projects
-
-//Section 4
-//Form
-const formHeading = document.querySelector(".form-heading");
-const formInputs = document.querySelectorAll(".contact-form-input");
-
-formInputs.forEach((input) => {
-  input.addEventListener("focus", () => {
-    formHeading.style.opacity = "0";
-    setTimeout(() => {
-      formHeading.textContent = `Your ${input.placeholder}`;
-      formHeading.style.opacity = "1";
-    }, 300);
-  });
-  input.addEventListener("blur", () => {
-    formHeading.style.opacity = "0";
-    setTimeout(() => {
-      formHeading.textContent = "Let's Talk";
-      formHeading.style.opacity = "1";
-    }, 300);
-  });
-});
-
-//End of Form
-
-//SlideShow
-const slideshow = document.querySelector(".slideshow");
-
-setInterval(() => {
-  const firstIcon = slideshow.firstElementChild;
-
-  firstIcon.classList.add("faded-out");
-
-  const thirdIcon = slideshow.children[3];
-  thirdIcon.classList.add("light");
-
-  thirdIcon.previousElementSibling.classList.remove("light");
-
-  setTimeout(() => {
-    slideshow.removeChild(firstIcon);
-
-    slideshow.appendChild(firstIcon);
-
-    setTimeout(() => {
-      firstIcon.classList.remove("faded-out");
-    }, 500);
-  }, 500);
-}, 3000);
-//End of SlideShow
-
-
-//Form Validation
-const form = document.querySelector('.contact-form')
-const username = document.getElementById('name')
-const email = document.getElementById('email')
-const subject = document.getElementById('subject')
-const message = document.getElementById('message')
-const messages = document.querySelectorAll('.message');
-
-const error = (input, message) => {
-  input.nextElementSibling.classList.add("error")
-  input.nextElementSibling.textContent = message;
-} 
-
-const success = (input) => {
-  input.nextElementSibling.classList.remove("error")
-}
-
-const checkRequiredFields = (inputArr) => {
-  inputArr.forEach(input => {
-    if(input.value.trim() === "") {
-      error(input, `${input.id} is required`)
-    }
-  })
-}
-
-const checkLength = (input, min) => {
-  if(input.value.trim().length < min) {
-    error(input, `${input.id} must be at least ${min} characters`)
-  } else {
-    success(input)
-  }
-}
-
-const checkEmail = (input) => {
-  const regEx =
-  /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-
-  if(regEx.test(input.value.trim())) {
-    success(input)
-  }else {
-    error(input, "Email is not valid")
-  }
-}
-
-form.addEventListener("submit", e => {
-  e.preventDefault()
-
-  checkLength(username, 2)
-  checkLength(subject, 2)
-  checkLength(message, 10)
-  checkEmail(email)
-  checkRequiredFields([username,email,subject,message])
-
-  const isValid = document.querySelectorAll('.error').length === 0; // Check if there are no errors
-  if (isValid) {
-    //Send email with EmailJS
-    emailjs.send("service_c5t4mad", "template_gk7cc4n", {
-      name: username.value,
-      email: email.value,
-      subject: subject.value,
-      message: message.value,
-    })
-    .then(function(response) {
-      alert('Message sent successfully!');
-      var frm = document.getElementsByClassName('contact-form')[0];
-      frm.submit(); // Submit the form
-      frm.reset();  // Reset all form data
-      return false; // Prevent page refresh
-    }, function(error) {
-      alert('Failed to send the message, please try again.');
+    sections.forEach(section => {
+        section.classList.remove('active');
     });
-  }
+    
+    navButtons.forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    document.getElementById(sectionId).classList.add('active');
+    
+    navButtons.forEach(button => {
+        if (button.textContent.toLowerCase() === sectionId) {
+            button.classList.add('active');
+        }
+    });
+    
+    // Close mobile menu if open
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.style.display = 'none';
+}
+
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.style.display = mobileMenu.style.display === 'block' ? 'none' : 'block';
+}
+
+// Form validation and submission
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Clear previous errors
+    clearErrors();
+    
+    // Get form values
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+    
+    let isValid = true;
+    
+    // Validate name
+    if (!name) {
+        showError('nameError', 'Name is required');
+        isValid = false;
+    } else if (name.length < 2) {
+        showError('nameError', 'Name must be at least 2 characters');
+        isValid = false;
+    }
+    
+    // Validate email
+    if (!email) {
+        showError('emailError', 'Email is required');
+        isValid = false;
+    } else if (!isValidEmail(email)) {
+        showError('emailError', 'Please enter a valid email address');
+        isValid = false;
+    }
+    
+    // Validate message
+    if (!message) {
+        showError('messageError', 'Message is required');
+        isValid = false;
+    } else if (message.length < 10) {
+        showError('messageError', 'Message must be at least 10 characters');
+        isValid = false;
+    }
+    
+    if (!isValid) return;
+    
+    // Disable submit button
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    
+    // Prepare email data
+    const templateParams = {
+        from_name: name,
+        from_email: email,
+        message: message,
+        to_name: 'Endrit'
+    };
+    
+    // Send email using EmailJS
+    emailjs.send('service_c5t4mad', 'template_gk7cc4n', templateParams)
+        .then(function(response) {
+            showFormMessage('Message sent successfully!', 'success');
+            document.getElementById('contactForm').reset();
+        }, function(error) {
+            console.error('EmailJS error:', error);
+            showFormMessage('Failed to send message. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+        });
 });
 
-//End of Form Validation
-//End of Section 4
+// Helper functions for form validation
+function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    errorElement.textContent = message;
+}
+
+function clearErrors() {
+    const errorElements = document.querySelectorAll('.error-message');
+    errorElements.forEach(element => {
+        element.textContent = '';
+    });
+    const formMessage = document.getElementById('formMessage');
+    formMessage.textContent = '';
+    formMessage.className = 'form-message';
+}
+
+function isValidEmail(email) {
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+function showFormMessage(message, type) {
+    const formMessage = document.getElementById('formMessage');
+    formMessage.textContent = message;
+    formMessage.className = `form-message ${type}`;
+    
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            formMessage.textContent = '';
+            formMessage.className = 'form-message';
+        }, 5000);
+    }
+}
+
+// Initialize navigation
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up navigation
+    const navButtons = document.querySelectorAll('.nav-menu button');
+    navButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const sectionId = this.textContent.toLowerCase();
+            showSection(sectionId);
+        });
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        
+        if (mobileMenu.style.display === 'block' && 
+            !mobileMenu.contains(e.target) && 
+            !mobileMenuBtn.contains(e.target)) {
+            mobileMenu.style.display = 'none';
+        }
+    });
+});
